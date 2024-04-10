@@ -193,7 +193,7 @@ class Ifelse(
         if(cond_data !is BooleanData) {
             throw Exception("need boolean data in if-else")
         }
-        return if(cond_data.value) {
+        if(cond_data.value) {
             return trueExpr.eval(runtime)
         } else {
             return falseExpr.eval(runtime)

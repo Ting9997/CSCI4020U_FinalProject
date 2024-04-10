@@ -60,6 +60,7 @@ express returns [Expr expression]
 value returns [Expr v]
     : str=STRING { $v = new StringLiteral($str.text); } // string
     | num=NUMBER { $v = new IntLiteral($num.text); } // number
+    | '-' num=NUMBER { $v = new IntLiteral("-" + $num.text); } // negative number
     ;
 
 arithmetic returns [Operator op]
