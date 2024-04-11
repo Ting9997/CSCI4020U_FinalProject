@@ -61,7 +61,10 @@ value returns [Expr v]
     : str=STRING { $v = new StringLiteral($str.text); } // string
     | num=NUMBER { $v = new IntLiteral($num.text); } // number
     | '-' num=NUMBER { $v = new IntLiteral("-" + $num.text); } // negative number
+    | num=FLOAT { $v = new FloatLiteral($num.text); } // Float
     ;
+
+
 
 arithmetic returns [Operator op]
     : ('+' | '++') { $op = Operator.Add; } 
@@ -82,6 +85,7 @@ comparator returns [Comparator co]
 // Lexer Rules
 STRING : '"' (~["\\])* '"' ;
 NUMBER : [0-9]+ ('.' [0-9]+)? ;
+FLOAT : [0-9]+ '.' [0-9]+ ;
 ID : [_a-zA-Z0-9]+ ;
 INT : [0-9]+ ;
 WS : [ \t\n\r]+ -> skip ;
