@@ -4,7 +4,7 @@ abstract class Data(val type: DataType)
 
 enum class DataType {
     INT,
-    FLOAT,
+    DOUBLE,
     STRING,
     BOOLEAN,
     FUNCTION,
@@ -20,8 +20,8 @@ class IntData(val value:Int): Data(DataType.INT) {
     override fun toString(): String = "$value"
 }
 
-class FloatData(val value: Float): Data(DataType.FLOAT) {
-    override fun toString(): String = value.toString()
+class DoubleData(val value: Double): Data(DataType.DOUBLE) {
+    override fun toString(): String = "$value"
 }
 
 class StringData(val value: String): Data(DataType.STRING) {

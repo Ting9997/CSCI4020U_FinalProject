@@ -25,11 +25,11 @@ class NoneExpr(): Expr(DataType.NONE) {
 }
 
 class IntLiteral(val lexeme: String) : Expr(DataType.INT) {
-    override fun eval(runtime: Runtime): Data = IntData(Integer.parseInt(lexeme))
+    override fun eval(runtime: Runtime): Data = IntData(lexeme.toInt())
 }
-
-class FloatLiteral(val lexeme: String) : Expr(DataType.FLOAT) {
-    override fun eval(runtime: Runtime): Data = FloatData(lexeme.toFloat())
+    
+class DoubleLiteral(val lexeme: String) : Expr(DataType.DOUBLE) {
+    override fun eval(runtime: Runtime): Data = DoubleData(lexeme.toDouble())
 }
 
 class StringLiteral(val lexeme: String) : Expr(DataType.STRING) {
@@ -76,18 +76,23 @@ class Arithmetics(
     val op: Operator,
     val left: Expr,
     val right: Expr
-) : Expr(DataType.INT) {
+) : Expr(DataType.NONE) {
     override fun eval(runtime: Runtime): Data {
         val x = left.eval(runtime)
         val y = right.eval(runtime)
         return when {
             x is IntData && y is IntData -> evaluateIntOperation(x, y)
             x is StringData && y is StringData -> evaluateStringOperation(x, y)
-            x is StringData && y is IntData -> evaluateStringAndIntOperation(x, y)
+            x is DoubleData && y is DoubleData -> evaluateDoubleOperation(x, y)
+            x is DoubleData && y is IntData -> evaluateMixedOperation(x, y)
+            x is IntData && y is DoubleData -> evaluateMixedOperation(y, x)
+            x is StringData && y is IntData -> multiplyStringOperation(x, y)
+            x is IntData && y is StringData  -> multiplyStringOperation(y, x)
             else -> throw Exception("Unsupported operation")
         }
     }
-
+    
+    
     private fun evaluateIntOperation(x: IntData, y: IntData): Data {
         return IntData(
             when (op) {
@@ -104,6 +109,42 @@ class Arithmetics(
             }
         )
     }
+    
+    private fun evaluateDoubleOperation(x: DoubleData, y: DoubleData): Data {
+        return DoubleData(
+            when (op) {
+                Operator.Add -> x.value + y.value
+                Operator.Sub -> x.value - y.value
+                Operator.Mul -> x.value * y.value
+                Operator.Div -> {
+                    if (y.value != 0.0) {
+                        x.value / y.value
+                    } else {
+                        throw Exception("cannot divide by zero")
+                    }
+                }
+            }
+        )
+    }
+    
+    private fun evaluateMixedOperation(x: DoubleData, y: IntData): Data {
+        return DoubleData(
+            when (op) {
+                Operator.Add -> x.value + y.value
+                Operator.Sub -> x.value - y.value
+                Operator.Mul -> x.value * y.value
+                Operator.Div -> {
+                    if (y.value != 0) {
+                        x.value / y.value
+                    } else {
+                        throw Exception("cannot divide by zero")
+                    }
+                }
+            }
+        )
+    }
+
+
 
     private fun evaluateStringOperation(x: StringData, y: StringData): Data {
         return StringData(
@@ -114,7 +155,7 @@ class Arithmetics(
         )
     }
     
-    private fun evaluateStringAndIntOperation(x: StringData, y: IntData): Data {
+    private fun multiplyStringOperation(x: StringData, y: IntData): Data {
         return StringData(
             when (op) {
                 Operator.Mul -> x.value.repeat(y.value)
