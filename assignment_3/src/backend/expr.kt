@@ -50,6 +50,15 @@ class Deref(val name:String): Expr(DataType.NONE) {
     }
 }
 
+class Initialize(val typeName: String, val name: String, val expression: Expr) : Expr(DataType.valueOf(typeName.uppercase())) {
+    override fun eval(runtime: Runtime): Data {
+        if (runtime.isValidType(typeName)) {
+            runtime.symbolTypes.put(name, DataType.valueOf(typeName.uppercase()))
+            return expression.eval(runtime).apply { runtime.symbolTable.put(name, this)}
+        } else throw Exception("Invalid type")
+    }
+}
+
 class Assignment(val name: String, val expression: Expr) : Expr(DataType.NONE) {
     override fun eval(runtime: Runtime): Data = expression.eval(runtime).apply { runtime.symbolTable.put(name, this)}
 
