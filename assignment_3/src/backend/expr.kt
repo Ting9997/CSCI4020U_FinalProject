@@ -60,7 +60,15 @@ class Initialize(val typeName: String, val name: String, val expression: Expr) :
 }
 
 class Assignment(val name: String, val expression: Expr) : Expr(DataType.NONE) {
-    override fun eval(runtime: Runtime): Data = expression.eval(runtime).apply { runtime.symbolTable.put(name, this)}
+    override fun eval(runtime: Runtime): Data {
+        if (runtime.symbolTable.containsKey(name)) {
+            val retData = expression.eval(runtime)
+            if (retData.type == runtime.symbolTypes[name]) {
+                runtime.symbolTable.put(name, retData)
+                return retData
+            } else throw Exception("$name is not of type ${retData.type}")
+        } else throw Exception("$name has not been defined")
+    }
 
 }
 

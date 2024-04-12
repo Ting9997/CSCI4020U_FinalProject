@@ -27,15 +27,20 @@ loop returns [Expr expression]
     ;
     
 statement returns [Expr expression]
-    : assign = assignment ';'? { $expression = $assign.expression; }
+    : initialize ';'? { $expression = $initialize.expression; }
+    | assign = assignment ';'? { $expression = $assign.expression; }
     | forloop = loop { $expression = $forloop.expression; }
     | declare = declareFunc { $expression = $declare.expression; }
     | conditional = ifelse { $expression = $conditional.expression; }
     | e=express ';'? { $expression = $e.expression; }
     ;
 
+initialize returns [Expr expression]
+    : typeName=ID varName=ID '=' express { $expression = new Initialize($typeName.text, $varName.text, $express.expression);}
+    ;
+
 assignment returns [Expr expression]
-    : 'let'? id=ID '=' e=express { $expression = new Assignment($id.text, $e.expression); }
+    : id=ID '=' e=express { $expression = new Assignment($id.text, $e.expression); }
     ;
 
 funCall returns [Expr expression]
