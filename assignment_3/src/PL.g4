@@ -10,24 +10,46 @@ import backend.*;
 program returns [Expr expr]
     : { List<Expr> statements = new ArrayList<Expr>();}
     (s=statement { statements.add($s.expression); })+ EOF { $expr = new Block(statements); }
-    ;
-
-ifelse returns [Expr expression]
-    : 'if' '(' condition=express ')'  '{' { List<Expr> statements1 = new ArrayList<Expr>(); } (s1=statement { statements1.add($s1.expression); } )* '}' 'else' '{' { List<Expr> statements2 = new ArrayList<Expr>(); } (s2=statement { statements2.add($s2.expression); } )* '}' { $expression = new Ifelse($condition.expression, new Block(statements1), new Block(statements2)); }
-    ;
+;    
 
 declareFunc returns [Expr expression]
-    : { List<FuncArg> parameters = new ArrayList<FuncArg>();}
-    'function' id=ID '(' typeName=ID str1=ID { parameters.add(new FuncArg($typeName.text, $str1.text)); } (',' typeName=ID str2=ID { parameters.add(new FuncArg($typeName.text, $str2.text)); })* ')' 
-    ':' type=ID {String returnType = $type.text;}
-    '{' { List<Expr> statements = new ArrayList<Expr>(); }(s=statement { statements.add($s.expression); } )* '}' { $expression = new Declare($id.text, parameters , new Block(statements), returnType); }
-    ;
+    : 'function' id=ID '(' args=funArgs ')' ':' type=ID '{' eList=stmntList '}' 
+    { $expression = new Declare($id.text, $args.argList , new Block($eList.exprList), $type.text); }
+;
+
+initialize returns [Expr expression]
+    : typeName=ID varName=ID '=' express { $expression = new Initialize($typeName.text, $varName.text, $express.expression);}
+;
+
+assignment returns [Expr expression]
+    : id=ID '=' e=express { $expression = new Assignment($id.text, $e.expression); }
+;
+
+funCall returns [Expr expression]
+    : 'print(' e=express ')' ';'? { $expression = new Print($e.expression); }
+    | id=ID '(' argList=stmntList ')' { $expression = new Invoke($id.text, $argList.exprList); }
+;
+
+ifelse returns [Expr expression]
+    : 'if' '(' condition=express ')' '{' eList1=stmntList '}' 'else' '{' eList2=stmntList '}' 
+    {$expression = new Ifelse($condition.expression, new Block($eList1.exprList), new Block($eList2.exprList));}
+;
 
 loop returns [Expr expression]
-    : { List<Expr> statements = new ArrayList<Expr>();}
-    'for(' id=ID 'in' num1=express '..' num2=express ')' '{' (s=statement { statements.add($s.expression); })* '}' { $expression = new Loop($id.text, $num1.expression, $num2.expression, new Block(statements)); }
-    ;
-    
+    :'for(' id=ID 'in' num1=express '..' num2=express ')' '{' eList=stmntList '}' 
+    { $expression = new Loop($id.text, $num1.expression, $num2.expression, new Block($eList.exprList)); }
+;
+
+stmntList returns [List<Expr> exprList] : 
+    {List<Expr> statements = new ArrayList<Expr>();}
+    ( ','? statement {statements.add($statement.expression);} )+  { $exprList = statements;}
+;
+
+funArgs returns [List<FuncArg> argList] : 
+    {List<FuncArg> parameters = new ArrayList<FuncArg>();}
+    (','? typeName=ID str=ID { parameters.add(new FuncArg($typeName.text, $str.text)); })+  { $argList = parameters;}
+;
+
 statement returns [Expr expression]
     : initialize ';'? { $expression = $initialize.expression; }
     | assign = assignment ';'? { $expression = $assign.expression; }
@@ -35,25 +57,7 @@ statement returns [Expr expression]
     | declare = declareFunc { $expression = $declare.expression; }
     | conditional = ifelse { $expression = $conditional.expression; }
     | e=express ';'? { $expression = $e.expression; }
-    ;
-
-initialize returns [Expr expression]
-    : typeName=ID varName=ID '=' express { $expression = new Initialize($typeName.text, $varName.text, $express.expression);}
-    ;
-
-assignment returns [Expr expression]
-    : id=ID '=' e=express { $expression = new Assignment($id.text, $e.expression); }
-    ;
-
-funCall returns [Expr expression]
-    : 'print(' e=express ')' ';'? { $expression = new Print($e.expression); }
-    | id=ID '(' arguments=argList ')' { $expression = new Invoke($id.text, $arguments.args); }
-    ;
-
-argList returns [List<Expr> args]
-    : { List<Expr> arguments = new ArrayList<Expr>(); }
-    e1=express { arguments.add($e1.expression); } (',' e2=express { arguments.add($e2.expression); })* { $args = arguments; }
-    ;
+;
 
 express returns [Expr expression]
     : val=value { $expression = $val.v; }
@@ -62,14 +66,14 @@ express returns [Expr expression]
     | left=express com=comparator right=express { $expression = new Compare($com.co, $left.expression, $right.expression); }
     | '(' e=express ')' { $expression=$e.expression; }
     | id=ID { $expression = new Deref($id.text); } 
-    ;
+;
 
 value returns [Expr v]
     : str=STRING { $v = new StringLiteral($str.text); } // string
     | num=NUMBER { $v = new IntLiteral($num.text); } // number
     | '-' num=NUMBER { $v = new IntLiteral("-" + $num.text); } // negative number
     | num=DOUBLE { $v = new DoubleLiteral($num.text); } // Float
-    ;
+;
 
 
 
@@ -78,7 +82,7 @@ arithmetic returns [Operator op]
     | '-' { $op = Operator.Sub; }
     | '*' { $op = Operator.Mul; }
     | '/' { $op = Operator.Div; }
-    ;
+;
     
 comparator returns [Comparator co]
     : '<' { $co = Comparator.LT; } 
@@ -87,7 +91,7 @@ comparator returns [Comparator co]
     | '>=' { $co = Comparator.GE; } 
     | '==' { $co = Comparator.EQ; } 
     | '!=' { $co = Comparator.NE; } 
-    ;
+;
 
 // Lexer Rules
 STRING : '"' (~["\\])* '"' ;
