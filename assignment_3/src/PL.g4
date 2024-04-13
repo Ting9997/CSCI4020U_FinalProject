@@ -12,9 +12,10 @@ program returns [Expr expr]
     (s=statement { statements.add($s.expression); })+ EOF { $expr = new Block(statements); }
 ;    
 
+
 declareFunc returns [Expr expression]
-    : 'function' id=ID '(' args=funArgs ')' ':' type=ID '{' eList=stmntList '}' 
-    { $expression = new Declare($id.text, $args.argList , new Block($eList.exprList), $type.text); }
+    : 'function' id=ID '(' args=funArgs ')' ':' type=ID {String returnType = $type.text;} '{' eList=stmntList '}' 
+    { $expression = new Declare($id.text, $args.argList , new Block($eList.exprList), returnType); }
 ;
 
 initialize returns [Expr expression]
@@ -35,9 +36,14 @@ ifelse returns [Expr expression]
     {$expression = new Ifelse($condition.expression, new Block($eList1.exprList), new Block($eList2.exprList));}
 ;
 
-loop returns [Expr expression]
-    :'for(' id=ID 'in' num1=express '..' num2=express ')' '{' eList=stmntList '}' 
+forLoop returns [Expr expression]
+    : 'for(' id=ID 'in' num1=express '..' num2=express ')' '{' eList=stmntList '}' 
     { $expression = new Loop($id.text, $num1.expression, $num2.expression, new Block($eList.exprList)); }
+;
+
+whileLoop returns [Expr expression]
+    : 'while(' condition=express ')' '{' eList=stmntList '}' 
+    { $expression = new While($condition.expression, new Block($eList.exprList)); }
 ;
 
 stmntList returns [List<Expr> exprList] : 
@@ -53,7 +59,8 @@ funArgs returns [List<FuncArg> argList] :
 statement returns [Expr expression]
     : initialize ';'? { $expression = $initialize.expression; }
     | assign = assignment ';'? { $expression = $assign.expression; }
-    | forloop = loop { $expression = $forloop.expression; }
+    | forloop = forLoop { $expression = $forloop.expression; }
+    | whileloop = whileLoop { $expression = $whileloop.expression; }
     | declare = declareFunc { $expression = $declare.expression; }
     | conditional = ifelse { $expression = $conditional.expression; }
     | e=express ';'? { $expression = $e.expression; }

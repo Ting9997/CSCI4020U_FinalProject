@@ -193,6 +193,25 @@ class Loop(val variable: String, val start: Expr, val end: Expr, val block: Expr
     }
 }
 
+class While(val cond:Expr, val body:Expr): Expr(DataType.NONE) {
+    override fun eval(runtime:Runtime): Data {
+        var flag = cond.eval(runtime) as BooleanData
+        var result:Data = None
+        var iter:Int = 1_000_000
+        while(flag.value) {
+            result = body.eval(runtime)
+            flag = cond.eval(runtime) as BooleanData
+            if(iter == 0) {
+                println("MAX_ITER reached")
+                println(runtime)
+                return None
+            }
+            iter --
+        }
+        return result
+    }
+}
+
 class Block(val statements: List<Expr>) : Expr(DataType.NONE) {
     override fun eval(runtime: Runtime): Data {
         var result: Data = None
