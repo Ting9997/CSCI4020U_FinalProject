@@ -19,7 +19,8 @@ ifelse returns [Expr expression]
 declareFunc returns [Expr expression]
     : { List<FuncArg> parameters = new ArrayList<FuncArg>();}
     'function' id=ID '(' typeName=ID str1=ID { parameters.add(new FuncArg($typeName.text, $str1.text)); } (',' typeName=ID str2=ID { parameters.add(new FuncArg($typeName.text, $str2.text)); })* ')' 
-    '{' { List<Expr> statements = new ArrayList<Expr>(); }(s=statement { statements.add($s.expression); } )* '}' { $expression = new Declare($id.text, parameters , new Block(statements)); }
+    ':' type=ID {String returnType = $type.text;}
+    '{' { List<Expr> statements = new ArrayList<Expr>(); }(s=statement { statements.add($s.expression); } )* '}' { $expression = new Declare($id.text, parameters , new Block(statements), returnType); }
     ;
 
 loop returns [Expr expression]

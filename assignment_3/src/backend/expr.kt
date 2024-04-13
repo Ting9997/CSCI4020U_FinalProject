@@ -222,7 +222,9 @@ class Invoke(val name:String, val args:List<Expr>):Expr(DataType.NONE) {
         val r = runtime.subscope(
             func.params.zip(args.map {it.eval(runtime)}).toMap()
         )
-        return func.body.eval(r)
+        val retVal = func.body.eval(r)
+        if (retVal.type != runtime.symbolTypes[name]) throw Exception("$name's return value is not returning a value of type ${runtime.symbolTypes[name]}")
+        return retVal
     }
 }
 
@@ -230,18 +232,22 @@ class Print(val expression: Expr) : Expr(DataType.FUNCTION) {
     override fun eval(runtime: Runtime): Data {
         val result = expression.eval(runtime)
         println(result)
-        return result
+        return None
     }
 }
 
 class Declare(
     val name: String,
     val params: List<FuncArg>,
-    val body: Expr
+    val body: Expr,
+    val typeName: String
 ): Expr(DataType.NONE) {
     override fun eval(runtime:Runtime):Data
-    = FuncData(name, params, body).also {
-        runtime.symbolTable[name] = it
+    { 
+        runtime.symbolTypes.put(name, DataType.valueOf(typeName.uppercase()))
+        return FuncData(name, params, body).also {
+            runtime.symbolTable[name] = it
+        }
     }
 }
 
