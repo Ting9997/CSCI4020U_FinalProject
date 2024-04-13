@@ -236,7 +236,7 @@ class Print(val expression: Expr) : Expr(DataType.FUNCTION) {
 
 class Declare(
     val name: String,
-    val params: List<String>,
+    val params: List<FuncArg>,
     val body: Expr
 ): Expr(DataType.NONE) {
     override fun eval(runtime:Runtime):Data

@@ -32,8 +32,17 @@ class BooleanData(val value:Boolean): Data(DataType.BOOLEAN) {
     override fun toString() = "$value"
 }
 
-class FunctionData(private val function: () -> Any): Data(DataType.FUNCTION) {
-    override fun toString(): String = "Function: ${function::class.simpleName}"
+class FuncData(
+    val name: String,
+    val params: List<FuncArg>,
+    val body: Expr
+): Data(DataType.FUNCTION) {
+    override fun toString()
+    = params.joinToString(", ").let {
+        "$name($it) { ... }"
+    }
 }
 
-
+data class FuncArg(val type: String, val name: String) {
+    fun getType(): DataType = DataType.valueOf(type.uppercase())
+}
