@@ -48,12 +48,12 @@ whileLoop returns [Expr expression]
 
 stmntList returns [List<Expr> exprList] : 
     {List<Expr> statements = new ArrayList<Expr>();}
-    ( ','? statement {statements.add($statement.expression);} )+  { $exprList = statements;}
+    ( ','? statement {statements.add($statement.expression);} )*  { $exprList = statements;}
 ;
 
 funArgs returns [List<FuncArg> argList] : 
     {List<FuncArg> parameters = new ArrayList<FuncArg>();}
-    (','? typeName=ID str=ID { parameters.add(new FuncArg($typeName.text, $str.text)); })+  { $argList = parameters;}
+    (','? typeName=ID str=ID { parameters.add(new FuncArg($typeName.text, $str.text)); })*  { $argList = parameters;}
 ;
 
 statement returns [Expr expression]
